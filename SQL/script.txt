@@ -1,0 +1,448 @@
+create database loja_de_games;
+
+
+use loja_de_games;
+
+
+###########################
+### CRIAÇÃO DAS TABELAS ###
+########################### 
+
+
+create table funcionarios(
+    
+	cargo varchar(50) not null,
+	CPF varchar(13) not null,
+	endereco varchar(50),
+	carteira_de_trabalho varchar(13) not null,
+	nome varchar(200) not null,
+	telefone varchar(20),
+	RG varchar(13),
+	turno_trabalho varchar(10),
+	primary key(carteira_de_trabalho) 
+);
+
+create table clientes(
+
+	CPF varchar(13) not null,
+	RG varchar(13),
+	nome varchar(200) not null,
+	email varchar(240),
+	endereco varchar(200),
+	telefone varchar(20),
+	primary key(CPF)
+);
+
+create table compra(
+
+	carteira_de_trabalho varchar(13) not null,
+	CPF varchar(13) not null,
+	data date not null,
+	hora time not null,
+	nota_fiscal varchar(20) not null,
+	preco_total dec(20) not null,
+	desconto dec(20) default 0.0,
+	forma_de_pagamento varchar(10) not null,
+	primary key(nota_fiscal),
+	foreign key(CPF) references clientes(CPF),
+	foreign key(carteira_de_trabalho) references funcionarios(carteira_de_trabalho)
+); 
+
+create table perifericos(
+	
+	codigo_de_barras int not null,
+	descricao varchar(300),
+	marca varchar(100) not null,
+	nome varchar(300) not null,
+	preco dec(20) not null,
+	tipo varchar(100),
+	primary key(codigo_de_barras)
+);
+
+create table jogos(
+
+	plataforma varchar(30) not null,
+	faixa_etaria int not null,
+	categoria varchar(30) not null,
+	preco dec(20) not null,
+	codigo_de_barras int not null,
+	primary key(codigo_de_barras)
+);
+
+create table consoles(
+	
+	numero_de_serie varchar(30) not null,
+	modelo varchar(30) not null,
+	novo_ou_usado varchar(10) not null,
+	preco dec(20) not null,
+	tipo varchar(30),
+	primary key(numero_de_serie)
+);
+
+create table emprestimo(
+
+	codigo_de_emprestimo int not null,
+	carteira_de_trabalho varchar(13) not null,
+	data_de_emprestimo date not null,
+	data_de_devolucao date not null,
+	taxa_de_atraso dec(20) default 0.0,
+	primary key(codigo_de_emprestimo),
+	foreign key(carteira_de_trabalho) references funcionarios(carteira_de_trabalho)
+);
+
+create table manutencao(
+
+	ordem_de_reparo int not null,
+	numero_de_serie varchar(30) not null,
+	data_de_entrega date not null,
+	data_de_saida date not null,
+	defeito varchar(30) not null,
+	garantia varchar(30) not null,
+	status_do_reparo varchar(30) not null,
+	solucao varchar(30) not null,
+	valor_do_reparo dec(20) not null,
+	codigo_de_barras int not null,
+	primary key(ordem_de_reparo),
+	foreign key(numero_de_serie) references consoles(numero_de_serie),
+	foreign key(codigo_de_barras) references perifericos(codigo_de_barras)
+);
+
+create table emprestimo_jogos(
+	
+	codigo_de_emprestimo int not null,
+	codigo_de_barras int not null,
+	foreign key(codigo_de_emprestimo) references emprestimo(codigo_de_emprestimo),
+	foreign key(codigo_de_barras) references jogos(codigo_de_barras)
+);
+
+
+create table compra_console(
+	
+	numero_de_serie varchar(30) not null,
+	nota_fiscal varchar(20) not null,
+	foreign key(numero_de_serie) references consoles(numero_de_serie),
+	foreign key(nota_fiscal) references compra(nota_fiscal)
+);
+
+create table compra_jogos(
+	
+	codigo_de_barras int not null,
+	nota_fiscal varchar(30) not null,
+	foreign key(codigo_de_barras) references jogos(codigo_de_barras),
+	foreign key(nota_fiscal) references compra(nota_fiscal)
+);
+
+create table compra_perifericos(
+
+	nota_fiscal varchar(30) not null,
+	codigo_de_barras int not null,
+	foreign key(nota_fiscal) references compra(nota_fiscal),
+	foreign key(codigo_de_barras) references perifericos(codigo_de_barras)	
+);
+
+############################################
+### INSERÇÃO DOS 3 REGISTROS NAS TABELAS ###
+############################################
+
+insert into clientes
+	
+	(CPF, RG, nome, email, endereco, telefone)
+	
+	values
+
+	('71617699911', '82740129230', 'Joao das Pedras', 'joaodaspedras@oulook.com', 'Rua Perdida, 923', '41991607070'),
+	('21230987614', '07173759029', 'Maria das Araucárias', 'mariaarau@gmail.com', 'Rua Esquecida, 236', '43999343470'),
+	('12747123674', '01837481791', 'Pedro da Pedra', 'pedropedra@hotmail.com', 'Rua do Crime, 9875', '44991707070');
+
+
+SET FOREIGN_KEY_CHECKS=0;
+
+
+insert into compra
+
+	(CPF, carteira_de_trabalho, data, hora, nota_fiscal, preco_total, forma_de_pagamento)
+
+	values
+
+	('71617699911', '53198399134', 20200812, 10-34-09, '123455123123', 4324.23, 'Parcelado'),
+	('21230987614', '53192342324', 20200814, 11-34-09, '123455122423', 1834.00, 'A vista'),
+	('12747123674', '08123634712', 20200815, 11-54-09, '123455175223', 2931.12, 'A vista'),
+
+	### COMPRA DOS PERIFÉRICOS ###
+
+	('23424232452', '08123634712', 20200722, 09-34-02, '729572195927', 134.00, 'A vista'),
+	('64326612134', '08123634712', 20200911, 11-04-09, '107561948190', 299.00, 'A vista');
+
+insert into consoles
+
+	(numero_de_serie, modelo, novo_ou_usado, preco, tipo)
+	
+	values
+
+	('123456789-0', 'Playstation 5', 'Novo', 5999.00, 'Padrão'),
+	('541246525-3', 'PlayStation Vita', 'Usado', 1044.50, 'Portátil'),
+	('971223654-5', 'Xbox One', 'Novo', 1988.00, 'Padrão');
+
+insert into emprestimo
+
+	(codigo_de_emprestimo, carteira_de_trabalho, data_de_emprestimo, data_de_devolucao, taxa_de_atraso)
+
+	values
+
+	('123451234', '53198399134', 20200612, 20200802, 0),
+	('123455444', '53192342324', 20200818, 20200911, 34.90),
+	('124543211', '08123634712', 20200922, 20201023, 0);
+
+insert into funcionarios
+
+	(cargo, CPF, endereco, carteira_de_trabalho, nome, telefone, RG, turno_trabalho)
+
+	values
+
+	('Atendente', '73829374928', 'Rua Negra, 3212', '53198399134', 'Etêvalda Marciana', '42991983232', '43665431231', 'matutino'),
+	('Vendedor', '64123451234', 'Rua Obscura, 642', '53192342324', 'Joao da Cruz', '438891981902', '12731959184', 'vespertino'),  
+	('Faxineira', '51234771123', 'Rua da Paz, 1643', '99821301341', 'Carlos da Pedra', '429911299903', '65215431231', 'matutino');
+
+insert into jogos
+
+	(plataforma, faixa_etaria, categoria, preco, codigo_de_barras)
+
+	values
+
+	('Portátil', 14, 'Ação', 129.0, 32359873),
+	('Padrão', 16, 'Ação', 229.0, 42159873),
+	('Padrão', 10, 'Aventura', 89.0, 52156873);
+
+insert into manutencao
+
+	(ordem_de_reparo, numero_de_serie, data_de_entrega, data_de_saida, defeito, 
+	garantia, status_do_reparo, solucao, valor_do_reparo, codigo_de_barras)
+
+	values
+
+	(83921476, '123456789-0', 20201129, 20201219, 'Sensor queimado', 'não', 'ativo', 'trocar Sensor', 349.0, 12343288),
+	(64512345, '541246525-3', 20201203, 20201228, 'Entrada com mal contato', 'sim', 'ativo', 'trocar entradas', 0.0, 21343258),
+	(91746132, '971223654-5', 20201211, 20210108, 'GPU danificada', 'não', 'ativo', 'trocar GPU', 649.0, 52343268);
+
+insert into perifericos
+
+	(codigo_de_barras, descricao, marca, nome, preco, tipo)
+
+	values
+
+	(52398743, 'Headset', 'Hyper X', 'Cloud Stinger', 289.0, 'PC'),
+	(62398744, 'Sensor de Movimentos', 'Xbox', 'Kinect', 489.0, 'Console'),
+	(62368009, 'Controle', 'Sony', 'Analog Controller', 189.0, 'Console');
+
+	 
+#######################################
+## INSERÇÃO NAS TABELAS ASSOCIATIVAS ##
+#######################################
+
+
+insert into compra_console
+
+	(numero_de_serie, nota_fiscal)
+
+	values
+
+	('123456789-0', '123455123123'),
+	('541246525-3', '123455122423'),
+	('971223654-5', '123455175223');
+
+insert into compra_jogos
+
+	(codigo_de_barras, nota_fiscal)
+
+	values
+	
+	(32359873, '123455123123'),
+	(42159873, '123455122423'),
+	(52156873, '123455175223');
+
+insert into compra_perifericos
+
+	(nota_fiscal, codigo_de_barras)
+
+	values
+
+	('123455175223', 52398743),
+	('729572195927', 62398744),
+	('107561948190', 62368009);
+
+insert into emprestimo_jogos
+
+	(codigo_de_emprestimo, codigo_de_barras)
+
+	values
+
+	(123451234, 32359873),
+	(123455444, 42159873),
+	(124543211, 42159873);
+
+
+############################
+### INSERÇÃO DAS QUERIES ###
+############################
+
+############################################################################
+### -> Edit | Preferences | SQL Editor | desabilite a opção safe mode <- ###
+### ou se não algumas queries não irão funcionar 	 	   	 ###
+############################################################################
+
+###############################################
+################# 1 QUERIE ####################
+### Mostra os principais dados dos clientes ###
+### Necessários para gerar as informações   ###
+### de pagamento                            ###
+###############################################
+
+select CPF, RG, email from clientes;
+
+###############################################
+################# 2 QUERIE ####################
+### Mostra qual/quais modelos de console    ###
+### portátil a loja possui                  ###
+### de acordo com pedido informado por      ###
+### telefone por um cliente específico      ###
+###############################################
+
+select modelo, tipo from consoles where tipo='Portátil';
+
+###############################################
+################# 3 QUERIE ####################
+### Deleta um console específico nas        ###
+### tabelas compra e compra_console         ###
+### O cliente encontrou um proplema grave   ###
+### no console, e pediu o dinheiro de volta ###
+### para a loja                             ###
+###############################################
+
+set foreign_key_checks=0;
+
+delete from compra_console where numero_de_serie=123456789-0;
+delete from compra where nota_fiscal=123455123123;
+
+###############################################
+################# 4 QUERIE ####################
+### Atualiza o modelo de console que será   ###
+### vendido                                 ###
+### O fornecedor da loja perdeu a           ###
+### capacidade de adquirir os novos         ###
+### Playstations 5, forçando a empresa a    ###
+### atualizar seu estoque apenas com        ###
+### Playstations 4                          ###
+###############################################
+
+update consoles set numero_de_serie=321654987-0, modelo='Playstation 4', 
+novo_ou_usado='Novo', preco=1799, tipo='Padrão' where modelo='Playstation 5';
+
+###############################################
+################# 5 QUERIE ####################
+### removendo o campo turno_trabalho da     ###
+### tabela funcionarios 		    ###
+### As vendas da loja de games aumentaram   ###
+### muito, com isso a mesma se obrigou a    ###
+### trabalhar apenas em um período          ###
+###############################################
+
+alter table funcionarios drop column turno_trabalho;
+
+###############################################
+################# 6 QUERIE ####################
+### alterando o status garantia e o preço   ###
+### da tabela manutencao   	 	    ###
+### A Sony verificou que o console do       ###
+### foi aberto manualmente pelo cliente     ###
+### descartando a garantia do mesmo         ###
+### devido a isso o reparo foi cobrado      ###
+### do cliente                              ###
+###############################################
+
+update manutencao set garantia='não', defeito='Entrada com mal contato',
+valor_do_reparo=236.0 where numero_de_serie='541246525-3';
+
+###############################################
+################# 7 QUERIE ####################
+### removendo uma entrada de empréstimos    ###
+### Um cliente estragou um dos jogos        ###
+### sendo necessário remover o registro     ###
+### na tabela de emprestimo_jogos e trocar  ###
+### o valor do emprestimo para o valor do   ###
+### jogo                                    ###
+###############################################  
+
+update emprestimo set taxa_de_atraso=229 where codigo_de_emprestimo=123451234;
+delete from emprestimo_jogos where codigo_de_emprestimo=123451234;
+
+###############################################
+################# 8 QUERIE ####################
+### aumentando o valor de preço da tabela   ###
+### perifericos                             ###
+### O fornecedor aumentou o preço dos       ###
+### Headsets e controles, logo a empresa    ###
+### deve subir seu preço também             ###
+###############################################
+
+update perifericos set preco=389 where marca='Hyper X';
+update perifericos set preco=220 where marca='Sony';
+
+###############################################
+################# 9 QUERIE ####################
+### apando a coluna preco da tabela         ###
+### manutencao                              ###
+### A empresa resolver oferecer uma         ###
+### promoção e agora vai oferecer os        ###
+### consertos de forma gratuita por um mês  ###
+###############################################
+
+alter table manutencao 
+drop column valor_do_reparo;
+
+##############################################
+################ 10 QUERIE ###################
+### alterando o endereço de cliente        ###
+### específico                             ###
+### O cliente mudou de endereço, logo      ###
+### se faz necessário atualizar o endereço ###
+### do mesmo                               ###
+##############################################
+
+update clientes set endereco='Rua do Alecrim, 9909' where nome='Pedro da Pedra';
+
+
+
+
+ 
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
